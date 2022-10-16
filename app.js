@@ -9,14 +9,15 @@ const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const errorsHandler = require('./middlewares/errorsHandler');
 const NotFoundError = require('./errors/not-found-error');
+const { mongoDbAddress } = require('./mongo-express-config');
 
-const { PORT = 4000 } = process.env;
+const { PORT = 4000, DB_ADDRESS, NODE_ENV } = process.env;
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {});
+mongoose.connect(NODE_ENV === 'production' ? DB_ADDRESS : mongoDbAddress, {});
 mongoose.set('toObject', { useProjection: true });
 mongoose.set('toJSON', { useProjection: true });
 
@@ -30,13 +31,13 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), createUser);
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), login);
 
@@ -61,6 +62,4 @@ app.use(errors());
 // обработка ошибок
 app.use(errorsHandler);
 
-app.listen(PORT, () => {
-  console.log('Ссылка на сервер');
-});
+app.listen(PORT, () => {});

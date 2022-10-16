@@ -46,9 +46,11 @@ module.exports.createUser = (req, res, next) => {
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new BadRequestError(err.message));
+            return;
           }
           if (err.code === 11000) {
             next(new ConflictDataError('Такой пользователь уже существует'));
+            return;
           }
           next(err);
         });
@@ -75,6 +77,7 @@ module.exports.login = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'Error') {
         next(new AuthError('Ошибка авторизации. Email или пароль введены неправильно'));
+        return;
       }
       next(err);
     });
